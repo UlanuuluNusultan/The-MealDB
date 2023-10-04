@@ -1,59 +1,79 @@
 import axios from '../axios';
 import React, { useEffect, useState } from 'react'
-import { useParams, } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import FoodPreview from '../components/food-datail/FoodPreview';
+import FoodIngridients from '../components/food-datail/FoodIngridients';
+import FoodDiscription from '../components/food-datail/FoodDiscription';
+import FoodVideo from '../components/food-datail/FoodVideo';
 
+const imgUrl = 'https://www.themealdb.com/images/ingredients/'
 const FoodDatail = () => {
     const [meal, setMeal] = useState(null)
+    const [ingredients, setIngredient] = useState(null)
+    const [mera, setMera] = useState(null)
+
+
+    const navigation = useNavigate()
+    const back = () => {
+        navigation(-1)
+    }
+
+
     const params = useParams()
-    console.log(params.foodId);
     const getFood = async () => {
         const { data } = await axios.get('api/json/v1/1/lookup.php?i=' + params.foodId)
-        console.log(data.meals);
-        setMeal(data.meals)
+        const meals = data.meals[0]
+        setMeal(data.meals[0])
+
+        const hesIngredients = []
+        const hesMera = []
+
+        for (let i = 1; i < 21; i++) {
+            if (meals[`strIngredient${i}`]?.length > 0) {
+                hesIngredients.push(meals[`strIngredient${i}`])
+                hesMera.push(meals[`strMeasure${i}`])
+            }
+        }
+        setIngredient([...hesIngredients])
+        setMera([...hesMera])
     }
     useEffect(() => {
         getFood()
     }, [])
+    if (meal == null) {
+        return <h2>Loading...</h2>
+    }
+
+ 
+
     return (
-        <div className='food'>
-            {meal?.map(el => {
-                return (
-                    <div className=''>
-                        <h2 className='name' >{el.strMeal}</h2>
-                        <div className='foods'>
-
-                            <img src={el.strMealThumb} width={320} />
-                            <div className=''>
-                                <h3>{el.strMeasure1} mushrooms</h3>
-                                <h3>{el.strMeasure2} English Mustarg</h3>
-                                <h3>{el.strMeasure3} Olive Oil</h3>
-                                <h3>{el.strMeasure4} Beef Fillet</h3>
-                                <h3>{el.strMeasure5} Parma ham</h3>
-                                <h3>{el.strMeasure6} Puff Pastry</h3>
-                                <h3>{el.strMeasure7} Flour</h3>
-                                <h3>{el.strMeasure8} Egg Yolks</h3>
-                                <h3>{el.strMeasure9} </h3>
-                                <h3>{el.strMeasure10} </h3>
-                                <h3>{el.strMeasure11} </h3>
-                                <h3>{el.strMeasure12} </h3>
-                                <h3>{el.strMeasure13} </h3>
-                                <h3>{el.strMeasure14} </h3>
-                                <h3>{el.strMeasure15} </h3>
-                                <h3>{el.strMeasure16} </h3>
-                                <h3>{el.strMeasure17} </h3>
-                                <h3>{el.strMeasure18} </h3>
-                                <h3>{el.strMeasure19} </h3>
-                                <h3>{el.strMeasure20} </h3>
-                            </div>
-                        </div>
-                        <div>
-                            <h2 className='Instructions'>Instructions</h2>
-                            <p>{el.strInstructions}</p>
-                        </div>
+        <div style={{ background: ' #2d2013' }}>
+            <div className='d-flex gap-3'>
+                <FoodPreview
+                    foodText={meal.strMeal}
+                    foodImg={meal.strMealThumb}
+                />
+                <div>
+                    <div className='d=flex justifly-content-between'>
+                        <h3 style={{ color: 'white' }}>Ingredients</h3>
+                        <button onClick={back}>Go back</button>
                     </div>
-
-                )
-            })}
+                    <div className='d-flex flex-wrap text-center'>
+                        {ingredients?.map(el => (
+                            <FoodIngridients
+                                IngredientsImg={imgUrl + el + '.png'}
+                                ingredientsName={el}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </div>
+            <FoodDiscription
+                Discription={meal.strInstructions}
+            />
+            <FoodVideo
+                video={meal.strYoutube}
+            />
         </div>
     )
 }
